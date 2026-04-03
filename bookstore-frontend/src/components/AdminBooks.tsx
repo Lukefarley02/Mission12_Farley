@@ -3,7 +3,9 @@ import { Book } from '../types/Book';
 import { useNavigate } from 'react-router-dom';
 
 // Base URL for all API calls
-const API_BASE = 'http://localhost:5050/api';
+// In development (Vite), use the full localhost URL
+// In production (served from the API), use a relative path
+const API_BASE = import.meta.env.DEV ? 'http://localhost:5050/api' : '/api';
 
 // Empty book template for the Add form
 const EMPTY_BOOK: Omit<Book, 'bookID'> = {

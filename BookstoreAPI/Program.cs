@@ -51,11 +51,21 @@ if (app.Environment.IsDevelopment())
 // Apply the CORS policy defined above — must come before MapControllers
 app.UseCors("AllowReact");
 
+// Serve the React frontend's static files (index.html, JS, CSS, etc.)
+// from the wwwroot folder. This allows the API and frontend to run from
+// the same domain when deployed to Azure.
+app.UseDefaultFiles(); // Serves index.html for "/" requests
+app.UseStaticFiles();  // Serves JS, CSS, images, etc. from wwwroot
+
 // Enable authorization middleware (required even without custom policies)
 app.UseAuthorization();
 
 // Map incoming HTTP requests to the appropriate controller actions
 app.MapControllers();
+
+// SPA fallback — any request that doesn't match an API route or static file
+// gets index.html so React Router can handle client-side routing (e.g., /adminbooks)
+app.MapFallbackToFile("index.html");
 
 // Start the web server and begin listening for requests
 app.Run();

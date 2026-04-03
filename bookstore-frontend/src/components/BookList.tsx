@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { Book, BooksResponse, BookListState } from '../types/Book';
 import { useCart } from '../context/CartContext';
 
-// Base URL for all API calls — update this if the backend runs on a different port
-const API_BASE = 'http://localhost:5050/api';
+// Base URL for all API calls
+// In development (Vite), use the full localhost URL
+// In production (served from the API), use a relative path
+const API_BASE = import.meta.env.DEV ? 'http://localhost:5050/api' : '/api';
 
 interface BookListProps {
   // Initial state to restore when returning from the cart page
