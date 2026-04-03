@@ -17,11 +17,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register the EF Core DbContext with SQLite as the database provider.
-// The connection string "BookstoreConnection" is read from appsettings.json:
-//   "Data Source=Bookstore.sqlite"
-// This makes BookstoreContext available via dependency injection throughout the app.
+// Use an absolute path based on the app's content root so it works both
+// locally and on Azure App Service (where the working directory may differ).
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Bookstore.sqlite");
 builder.Services.AddDbContext<BookstoreContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("BookstoreConnection")));
+    options.UseSqlite($"Data Source={dbPath}"));
 
 // Configure Cross-Origin Resource Sharing (CORS).
 // Browsers block requests from one origin (e.g., http://localhost:5173) to another
