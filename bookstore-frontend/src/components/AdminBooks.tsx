@@ -17,6 +17,122 @@ const EMPTY_BOOK: Omit<Book, 'bookID'> = {
   price: 0,
 };
 
+// ── Reusable Book Form (defined outside AdminBooks to maintain stable identity) ──
+function BookForm({
+  book,
+  onChange,
+  onSubmit,
+  onCancel,
+  submitLabel,
+}: {
+  book: Omit<Book, 'bookID'> & { bookID?: number };
+  onChange: (field: string, value: string | number) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+  submitLabel: string;
+}) {
+  return (
+    <form onSubmit={onSubmit}>
+      <div className="row g-3">
+        <div className="col-md-6">
+          <label className="form-label fw-semibold">Title</label>
+          <input
+            type="text"
+            className="form-control"
+            value={book.title}
+            onChange={e => onChange('title', e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label fw-semibold">Author</label>
+          <input
+            type="text"
+            className="form-control"
+            value={book.author}
+            onChange={e => onChange('author', e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label fw-semibold">Publisher</label>
+          <input
+            type="text"
+            className="form-control"
+            value={book.publisher}
+            onChange={e => onChange('publisher', e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label fw-semibold">ISBN</label>
+          <input
+            type="text"
+            className="form-control"
+            value={book.isbn}
+            onChange={e => onChange('isbn', e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-md-3">
+          <label className="form-label fw-semibold">Classification</label>
+          <select
+            className="form-select"
+            value={book.classification}
+            onChange={e => onChange('classification', e.target.value)}
+            required
+          >
+            <option value="">Select...</option>
+            <option value="Fiction">Fiction</option>
+            <option value="Non-Fiction">Non-Fiction</option>
+          </select>
+        </div>
+        <div className="col-md-3">
+          <label className="form-label fw-semibold">Category</label>
+          <input
+            type="text"
+            className="form-control"
+            value={book.category}
+            onChange={e => onChange('category', e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-md-3">
+          <label className="form-label fw-semibold">Page Count</label>
+          <input
+            type="number"
+            className="form-control"
+            value={book.pageCount}
+            onChange={e => onChange('pageCount', Number(e.target.value))}
+            min="1"
+            required
+          />
+        </div>
+        <div className="col-md-3">
+          <label className="form-label fw-semibold">Price ($)</label>
+          <input
+            type="number"
+            className="form-control"
+            value={book.price}
+            onChange={e => onChange('price', Number(e.target.value))}
+            min="0"
+            step="0.01"
+            required
+          />
+        </div>
+      </div>
+      <div className="mt-3 d-flex gap-2">
+        <button type="submit" className="btn btn-primary">
+          {submitLabel}
+        </button>
+        <button type="button" className="btn btn-outline-secondary" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
 /**
  * AdminBooks component
  *
@@ -125,120 +241,6 @@ export default function AdminBooks() {
       setError('Failed to delete book.');
     }
   };
-
-  // ── Reusable Book Form ─────────────────────────────────────────────────────
-  const BookForm = ({
-    book,
-    onChange,
-    onSubmit,
-    onCancel,
-    submitLabel,
-  }: {
-    book: Omit<Book, 'bookID'> & { bookID?: number };
-    onChange: (field: string, value: string | number) => void;
-    onSubmit: (e: React.FormEvent) => void;
-    onCancel: () => void;
-    submitLabel: string;
-  }) => (
-    <form onSubmit={onSubmit}>
-      <div className="row g-3">
-        <div className="col-md-6">
-          <label className="form-label fw-semibold">Title</label>
-          <input
-            type="text"
-            className="form-control"
-            value={book.title}
-            onChange={e => onChange('title', e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label fw-semibold">Author</label>
-          <input
-            type="text"
-            className="form-control"
-            value={book.author}
-            onChange={e => onChange('author', e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label fw-semibold">Publisher</label>
-          <input
-            type="text"
-            className="form-control"
-            value={book.publisher}
-            onChange={e => onChange('publisher', e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label fw-semibold">ISBN</label>
-          <input
-            type="text"
-            className="form-control"
-            value={book.isbn}
-            onChange={e => onChange('isbn', e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-3">
-          <label className="form-label fw-semibold">Classification</label>
-          <select
-            className="form-select"
-            value={book.classification}
-            onChange={e => onChange('classification', e.target.value)}
-            required
-          >
-            <option value="">Select...</option>
-            <option value="Fiction">Fiction</option>
-            <option value="Non-Fiction">Non-Fiction</option>
-          </select>
-        </div>
-        <div className="col-md-3">
-          <label className="form-label fw-semibold">Category</label>
-          <input
-            type="text"
-            className="form-control"
-            value={book.category}
-            onChange={e => onChange('category', e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-3">
-          <label className="form-label fw-semibold">Page Count</label>
-          <input
-            type="number"
-            className="form-control"
-            value={book.pageCount}
-            onChange={e => onChange('pageCount', Number(e.target.value))}
-            min="1"
-            required
-          />
-        </div>
-        <div className="col-md-3">
-          <label className="form-label fw-semibold">Price ($)</label>
-          <input
-            type="number"
-            className="form-control"
-            value={book.price}
-            onChange={e => onChange('price', Number(e.target.value))}
-            min="0"
-            step="0.01"
-            required
-          />
-        </div>
-      </div>
-      <div className="mt-3 d-flex gap-2">
-        <button type="submit" className="btn btn-primary">
-          {submitLabel}
-        </button>
-        <button type="button" className="btn btn-outline-secondary" onClick={onCancel}>
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
