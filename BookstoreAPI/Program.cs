@@ -17,18 +17,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register the EF Core DbContext with SQLite as the database provider.
-// On Azure, the app directory may be read-only, so we copy the seed database
-// to a writable location (%HOME%) on first run. Locally, use it in place.
-
-// Search multiple possible locations for the seed database
-var possiblePaths = new[]
-{
-    Path.Combine(AppContext.BaseDirectory, "Bookstore.sqlite"),
-    Path.Combine(builder.Environment.ContentRootPath, "Bookstore.sqlite"),
-    Path.Combine(Directory.GetCurrentDirectory(), "Bookstore.sqlite"),
-};
-var sourceDb = possiblePaths.FirstOrDefault(File.Exists) ?? possiblePaths[0];
-
+// On Azure, the app directory is read-only, so we use the writable /home directory.
+// Locally, use the database in the current directory.
 var homeDir = Environment.GetEnvironmentVariable("HOME");
 string dbPath;
 
@@ -36,16 +26,11 @@ if (!string.IsNullOrEmpty(homeDir) && homeDir.StartsWith("/home"))
 {
     // Running on Azure — use the writable /home directory
     dbPath = Path.Combine(homeDir, "Bookstore.sqlite");
-    // Always copy the seed database to ensure it has the correct tables
-    if (File.Exists(sourceDb))
-    {
-        File.Copy(sourceDb, dbPath, overwrite: true);
-    }
 }
 else
 {
-    // Running locally — use the database in place
-    dbPath = sourceDb;
+    // Running locally — use the database in the app directory
+    dbPath = Path.Combine(AppContext.BaseDirectory, "Bookstore.sqlite");
 }
 
 builder.Services.AddDbContext<BookstoreContext>(options =>
@@ -68,6 +53,15 @@ builder.Services.AddCors(options =>
 // ── App phase ────────────────────────────────────────────────────────────────
 // Build the WebApplication from the configured services
 var app = builder.Build();
+
+// Ensure the database and tables exist. If the SQLite file doesn't exist yet
+// (e.g., on a fresh Azure deployment), EnsureCreated will create it and seed
+// it with the data defined in BookstoreContext.OnModelCreating().
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BookstoreContext>();
+    db.Database.EnsureCreated();
+}
 
 // Expose detailed error pages to help diagnose deployment issues
 if (app.Environment.IsDevelopment())
