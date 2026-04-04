@@ -17,9 +17,27 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register the EF Core DbContext with SQLite as the database provider.
-// Use an absolute path based on the app's content root so it works both
-// locally and on Azure App Service (where the working directory may differ).
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Bookstore.sqlite");
+// On Azure, the app directory may be read-only, so we copy the seed database
+// to a writable location (%HOME%) on first run. Locally, use it in place.
+var sourceDb = Path.Combine(AppContext.BaseDirectory, "Bookstore.sqlite");
+var homeDir = Environment.GetEnvironmentVariable("HOME");
+string dbPath;
+
+if (!string.IsNullOrEmpty(homeDir) && homeDir.StartsWith("/home"))
+{
+    // Running on Azure — use the writable /home directory
+    dbPath = Path.Combine(homeDir, "Bookstore.sqlite");
+    if (!File.Exists(dbPath))
+    {
+        File.Copy(sourceDb, dbPath);
+    }
+}
+else
+{
+    // Running locally — use the database in place
+    dbPath = sourceDb;
+}
+
 builder.Services.AddDbContext<BookstoreContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
@@ -41,12 +59,15 @@ builder.Services.AddCors(options =>
 // Build the WebApplication from the configured services
 var app = builder.Build();
 
-// Only expose Swagger UI in development — never in production
+// Expose detailed error pages to help diagnose deployment issues
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();    // Serves the OpenAPI JSON at /swagger/v1/swagger.json
     app.UseSwaggerUI(); // Serves the interactive UI at /swagger
 }
+
+// Show detailed errors in all environments (remove after debugging)
+app.UseDeveloperExceptionPage();
 
 // Apply the CORS policy defined above — must come before MapControllers
 app.UseCors("AllowReact");
