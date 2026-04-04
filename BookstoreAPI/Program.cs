@@ -19,7 +19,16 @@ builder.Services.AddSwaggerGen();
 // Register the EF Core DbContext with SQLite as the database provider.
 // On Azure, the app directory may be read-only, so we copy the seed database
 // to a writable location (%HOME%) on first run. Locally, use it in place.
-var sourceDb = Path.Combine(AppContext.BaseDirectory, "Bookstore.sqlite");
+
+// Search multiple possible locations for the seed database
+var possiblePaths = new[]
+{
+    Path.Combine(AppContext.BaseDirectory, "Bookstore.sqlite"),
+    Path.Combine(builder.Environment.ContentRootPath, "Bookstore.sqlite"),
+    Path.Combine(Directory.GetCurrentDirectory(), "Bookstore.sqlite"),
+};
+var sourceDb = possiblePaths.FirstOrDefault(File.Exists) ?? possiblePaths[0];
+
 var homeDir = Environment.GetEnvironmentVariable("HOME");
 string dbPath;
 
@@ -27,9 +36,10 @@ if (!string.IsNullOrEmpty(homeDir) && homeDir.StartsWith("/home"))
 {
     // Running on Azure — use the writable /home directory
     dbPath = Path.Combine(homeDir, "Bookstore.sqlite");
-    if (!File.Exists(dbPath))
+    // Always copy the seed database to ensure it has the correct tables
+    if (File.Exists(sourceDb))
     {
-        File.Copy(sourceDb, dbPath);
+        File.Copy(sourceDb, dbPath, overwrite: true);
     }
 }
 else
